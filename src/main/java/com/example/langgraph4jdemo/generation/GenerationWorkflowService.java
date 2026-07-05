@@ -9,9 +9,8 @@ import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.RunnableConfig;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.AsyncEdgeAction;
+import org.bsc.langgraph4j.action.AsyncNodeActionWithConfig;
 import org.bsc.langgraph4j.checkpoint.BaseCheckpointSaver;
-import org.bsc.langgraph4j.utils.EdgeMappings;
-import org.bsc.langgraph4j.serializer.std.ObjectStreamStateSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -20,10 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.bsc.langgraph4j.StateGraph.END;
 import static org.bsc.langgraph4j.StateGraph.START;
+import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
+import static org.bsc.langgraph4j.action.AsyncNodeActionWithConfig.node_async;
 
 @Service
 public class GenerationWorkflowService {
@@ -41,12 +41,11 @@ public class GenerationWorkflowService {
     public GenerationWorkflowService(WritingAssistant writingAssistant,
                                      ObjectMapper objectMapper,
                                      GenerationWorkflowProperties workflowProperties,
-                                     ObjectStreamStateSerializer<GenerationWorkflowState> stateSerializer,
                                      BaseCheckpointSaver checkpointSaver) {
         this.writingAssistant = writingAssistant;
         this.objectMapper = objectMapper;
         this.workflowProperties = workflowProperties;
-        this.compiledGraph = buildGraph(stateSerializer, checkpointSaver);
+        this.compiledGraph = buildGraph(checkpointSaver);
     }
 
     public GenerationWorkflowResult run(AppUser user, GenerationRequest request, String threadId) {
@@ -83,36 +82,32 @@ public class GenerationWorkflowService {
         );
     }
 
-    private CompiledGraph<GenerationWorkflowState> buildGraph(ObjectStreamStateSerializer<GenerationWorkflowState> stateSerializer,
-                                                              BaseCheckpointSaver checkpointSaver) {
+    private CompiledGraph<GenerationWorkflowState> buildGraph(BaseCheckpointSaver checkpointSaver) {
         try {
-            StateGraph<GenerationWorkflowState> graph = new StateGraph<>(
-                    GenerationWorkflowState.SCHEMA,
-                    stateSerializer
-            );
+            var stateGraph = new StateGraph<>(GenerationWorkflowState.SCHEMA, GenerationWorkflowState::new)
+                    .addNode(DRAFT_NODE, node_async((state, config) -> draftNode(state)))
+                    .addNode(JUDGE_NODE, node_async((state, config) -> judgeNode(state)))
+                    .addNode(REVISE_NODE, node_async((state, config) -> reviseNode(state)))
+                    .addNode(FINALIZE_NODE, node_async((state, config) -> finalizeNode(state)))
+                    .addEdge(START, DRAFT_NODE)
+                    .addEdge(DRAFT_NODE, JUDGE_NODE)
+                    .addConditionalEdges(
+                            JUDGE_NODE,
+                            edge_async(state -> routeAfterJudge(state)),
+                            Map.of(
+                                    "revise", REVISE_NODE,
+                                    "finalize", FINALIZE_NODE
+                            )
+                    )
+                    .addEdge(REVISE_NODE, JUDGE_NODE)
+                    .addEdge(FINALIZE_NODE, END);
 
-            graph.addNode(DRAFT_NODE, (state, config) -> CompletableFuture.completedFuture(draftNode(state)));
-            graph.addNode(JUDGE_NODE, (state, config) -> CompletableFuture.completedFuture(judgeNode(state)));
-            graph.addNode(REVISE_NODE, (state, config) -> CompletableFuture.completedFuture(reviseNode(state)));
-            graph.addNode(FINALIZE_NODE, (state, config) -> CompletableFuture.completedFuture(finalizeNode(state)));
-
-            graph.addEdge(START, DRAFT_NODE);
-            graph.addEdge(DRAFT_NODE, JUDGE_NODE);
-            graph.addConditionalEdges(
-                    JUDGE_NODE,
-                    AsyncEdgeAction.edge_async((GenerationWorkflowState state) -> routeAfterJudge(state)),
-                    EdgeMappings.builder()
-                            .to(REVISE_NODE)
-                            .to(FINALIZE_NODE)
-                            .build()
-            );
-            graph.addEdge(REVISE_NODE, JUDGE_NODE);
-            graph.addEdge(FINALIZE_NODE, END);
-
-            return graph.compile(CompileConfig.builder()
+            var compileConfig = CompileConfig.builder()
                     .checkpointSaver(checkpointSaver)
                     .releaseThread(false)
-                    .build());
+                    .build();
+
+            return stateGraph.compile(compileConfig);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to build generation workflow graph", e);
         }
