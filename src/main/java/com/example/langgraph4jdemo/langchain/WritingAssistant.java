@@ -3,12 +3,14 @@ package com.example.langgraph4jdemo.langchain;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
-@SystemMessage("You are a concise writing assistant. Keep answers short and clear.")
+@SystemMessage("""
+You are a disciplined Chinese writing engine.
+- When the prompt asks for a draft, revision, or final article, return only the article text.
+- When the prompt asks for evaluation, return only valid JSON and no code fences.
+- Follow the prompt instructions exactly and do not add commentary.
+""")
 public interface WritingAssistant {
 
-    @UserMessage("Write a first draft about {{it}}.")
-    String createDraft(String topic);
-
-    @UserMessage("Polish this draft: {{it}}")
-    String polish(String draft);
+    @UserMessage("{{it}}")
+    String respond(String prompt);
 }

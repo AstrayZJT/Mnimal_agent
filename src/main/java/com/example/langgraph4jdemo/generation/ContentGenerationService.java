@@ -2,32 +2,31 @@ package com.example.langgraph4jdemo.generation;
 
 import com.example.langgraph4jdemo.auth.AppUser;
 import com.example.langgraph4jdemo.config.AppProperties;
-import com.example.langgraph4jdemo.langchain.WritingAssistant;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ContentGenerationService {
 
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private final WritingAssistant writingAssistant;
+    private final GenerationWorkflowService generationWorkflowService;
     private final GeneratedTextRecordRepository generatedTextRecordRepository;
     private final TextArchiveService textArchiveService;
     private final AppProperties appProperties;
 
-    public ContentGenerationService(WritingAssistant writingAssistant,
+    public ContentGenerationService(GenerationWorkflowService generationWorkflowService,
                                     GeneratedTextRecordRepository generatedTextRecordRepository,
                                     TextArchiveService textArchiveService,
                                     AppProperties appProperties) {
-        this.writingAssistant = writingAssistant;
+        this.generationWorkflowService = generationWorkflowService;
         this.generatedTextRecordRepository = generatedTextRecordRepository;
         this.textArchiveService = textArchiveService;
         this.appProperties = appProperties;
@@ -35,9 +34,8 @@ public class ContentGenerationService {
 
     @Transactional
     public GenerationResponse generate(AppUser user, GenerationRequest request) {
-        String prompt = buildPrompt(request);
-        String draft = writingAssistant.createDraft(prompt);
-        String finalText = writingAssistant.polish(draft);
+        String threadId = "generation-" + UUID.randomUUID();
+        GenerationWorkflowResult workflowResult = generationWorkflowService.run(user, request, threadId);
 
         GeneratedTextRecord record = new GeneratedTextRecord();
         record.setUser(user);
@@ -45,8 +43,12 @@ public class ContentGenerationService {
         record.setAudience(clean(request.audience(), "general readers"));
         record.setTone(clean(request.tone(), "balanced"));
         record.setNotes(cleanNullable(request.notes()));
-        record.setDraftText(draft);
-        record.setFinalText(finalText);
+        record.setDraftText(workflowResult.draftText());
+        record.setFinalText(workflowResult.finalText());
+        record.setWorkflowThreadId(threadId);
+        record.setQualityScore(workflowResult.qualityScore());
+        record.setRevisionCount(workflowResult.revisionCount());
+        record.setWorkflowTrace(workflowResult.traceLog());
         record = generatedTextRecordRepository.saveAndFlush(record);
 
         try {
@@ -85,13 +87,7 @@ public class ContentGenerationService {
     private GenerationResponse toResponse(GeneratedTextRecord record) {
         return new GenerationResponse(
                 record.getId(),
-                record.getTopic(),
-                record.getAudience(),
-                record.getTone(),
-                record.getNotes(),
-                record.getDraftText(),
                 record.getFinalText(),
-                record.getArchivePath(),
                 record.getCreatedAt().format(DISPLAY_TIME),
                 "/api/generations/" + record.getId() + "/file"
         );
@@ -104,34 +100,17 @@ public class ContentGenerationService {
         }
         return new GenerationSummary(
                 record.getId(),
-                record.getTopic(),
-                record.getTone(),
                 record.getCreatedAt().format(DISPLAY_TIME),
                 preview == null ? "" : preview,
                 "/api/generations/" + record.getId() + "/file"
         );
     }
 
-    private String buildPrompt(GenerationRequest request) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(request.topic().trim());
-        if (StringUtils.hasText(request.audience())) {
-            builder.append(" | audience: ").append(request.audience().trim());
-        }
-        if (StringUtils.hasText(request.tone())) {
-            builder.append(" | tone: ").append(request.tone().trim());
-        }
-        if (StringUtils.hasText(request.notes())) {
-            builder.append(" | notes: ").append(request.notes().trim());
-        }
-        return builder.toString();
-    }
-
     private String clean(String value, String fallback) {
-        return StringUtils.hasText(value) ? value.trim() : fallback;
+        return value != null && !value.isBlank() ? value.trim() : fallback;
     }
 
     private String cleanNullable(String value) {
-        return StringUtils.hasText(value) ? value.trim() : null;
+        return value != null && !value.isBlank() ? value.trim() : null;
     }
 }

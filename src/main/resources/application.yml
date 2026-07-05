@@ -34,6 +34,9 @@ agent:
     max-results: ${AGENT_SEARCH_MAX_RESULTS:5}
   webpage:
     max-characters: ${AGENT_WEBPAGE_MAX_CHARACTERS:8000}
+  workflow:
+    score-threshold: ${AGENT_WORKFLOW_SCORE_THRESHOLD:85}
+    max-revisions: ${AGENT_WORKFLOW_MAX_REVISIONS:2}
 
 rag:
   knowledge-path: knowledge

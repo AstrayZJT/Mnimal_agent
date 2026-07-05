@@ -64,7 +64,7 @@ public class GenerationController {
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"generated-text-" + record.getId() + ".md\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"final-content-" + record.getId() + ".md\"")
                 .contentType(MediaType.parseMediaType("text/markdown;charset=UTF-8"))
                 .body(resource);
     }

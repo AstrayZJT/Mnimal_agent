@@ -47,6 +47,16 @@ public class GeneratedTextRecord {
     @Column(length = 500)
     private String archivePath;
 
+    @Column(length = 120)
+    private String workflowThreadId;
+
+    private Integer qualityScore;
+
+    private Integer revisionCount;
+
+    @Column(columnDefinition = "TEXT")
+    private String workflowTrace;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -126,6 +136,38 @@ public class GeneratedTextRecord {
 
     public void setArchivePath(String archivePath) {
         this.archivePath = archivePath;
+    }
+
+    public String getWorkflowThreadId() {
+        return workflowThreadId;
+    }
+
+    public void setWorkflowThreadId(String workflowThreadId) {
+        this.workflowThreadId = workflowThreadId;
+    }
+
+    public Integer getQualityScore() {
+        return qualityScore;
+    }
+
+    public void setQualityScore(Integer qualityScore) {
+        this.qualityScore = qualityScore;
+    }
+
+    public Integer getRevisionCount() {
+        return revisionCount;
+    }
+
+    public void setRevisionCount(Integer revisionCount) {
+        this.revisionCount = revisionCount;
+    }
+
+    public String getWorkflowTrace() {
+        return workflowTrace;
+    }
+
+    public void setWorkflowTrace(String workflowTrace) {
+        this.workflowTrace = workflowTrace;
     }
 
     public LocalDateTime getCreatedAt() {

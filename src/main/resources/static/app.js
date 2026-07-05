@@ -112,8 +112,6 @@ async function initAppPage() {
     const userGreeting = $("#userGreeting");
     const userMeta = $("#userMeta");
     const historyCount = $("#historyCount");
-    const totalCount = $("#totalCount");
-    const recordCount = $("#recordCount");
     const generateForm = $("#generateForm");
     const generateButton = $("#generateButton");
     const refreshButton = $("#refreshButton");
@@ -121,15 +119,9 @@ async function initAppPage() {
     const statusMessage = $("#statusMessage");
     const historyList = $("#historyList");
     const outputBox = $("#outputBox");
-    const archivePath = $("#archivePath");
-    const recordTopic = $("#recordTopic");
-    const recordTone = $("#recordTone");
     const recordCreatedAt = $("#recordCreatedAt");
     const recordDownload = $("#recordDownload");
     const recordCopy = $("#recordCopy");
-    const recordPreview = $("#recordPreview");
-    const recordDraft = $("#recordDraft");
-    const recordNotes = $("#recordNotes");
     const recordEmpty = $("#recordEmpty");
     const recordLinks = $("#recordLinks");
     const note = $("#submitNote");
@@ -138,27 +130,16 @@ async function initAppPage() {
     userGreeting.textContent = `欢迎，${me.displayName}`;
     userMeta.textContent = `@${me.username}`;
 
-    let activeRecordId = null;
     let lastDetail = null;
 
     function renderDetail(record) {
         lastDetail = record;
-        activeRecordId = record.id;
         outputBox.textContent = record.finalText || "";
-        archivePath.textContent = record.archivePath || "暂未写入磁盘";
-        recordTopic.textContent = record.topic || "未命名主题";
-        recordTone.textContent = record.tone || "balanced";
         recordCreatedAt.textContent = record.createdAt || "-";
-        recordPreview.textContent = record.finalText || "";
-        recordDraft.textContent = record.draftText || "没有草稿内容";
-        recordNotes.textContent = record.notes || "没有补充说明";
         recordDownload.href = record.downloadUrl || "#";
         recordDownload.classList.toggle("disabled", !record.downloadUrl);
         recordLinks.hidden = false;
         recordEmpty.hidden = true;
-        $$(".history-item", historyList).forEach((item) => {
-            item.classList.toggle("is-active", item.dataset.id === String(record.id));
-        });
     }
 
     function renderHistory(items) {
@@ -179,8 +160,8 @@ async function initAppPage() {
             button.className = "history-item";
             button.dataset.id = item.id;
             button.innerHTML = `
-                <strong>${escapeHtml(item.topic || "未命名主题")}</strong>
-                <span>${escapeHtml(item.createdAt || "-")} · ${escapeHtml(item.tone || "balanced")}</span>
+                <strong>记录 #${escapeHtml(String(item.id))}</strong>
+                <span>${escapeHtml(item.createdAt || "-")}</span>
                 <p>${escapeHtml(item.preview || "")}</p>
             `;
             button.addEventListener("click", async () => {
@@ -195,6 +176,9 @@ async function initAppPage() {
         renderHistory(items);
         if (selectLatest && items.length > 0) {
             await openRecord(items[0].id);
+        } else if (!items.length) {
+            recordLinks.hidden = true;
+            recordEmpty.hidden = false;
         }
     }
 
@@ -221,7 +205,7 @@ async function initAppPage() {
                 body: payload
             });
             renderDetail(record);
-            setMessage(note, "已生成并落盘。", false);
+            setMessage(note, "已生成并保存。", false);
             await loadHistory(false);
         } catch (error) {
             setMessage(note, error.message || "生成失败", true);
