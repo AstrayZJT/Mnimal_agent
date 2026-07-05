@@ -1,0 +1,13 @@
+target/
+data/
+generated-output/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.log
+*.tmp
+*.swp
+Thumbs.db
+.DS_Store

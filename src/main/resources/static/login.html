@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - Minimal Agent Studio</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body class="screen" data-page="login">
+<main class="auth-shell">
+    <section class="auth-intro">
+        <div>
+            <div class="brand-row">
+                <img src="/brand.svg" alt="Minimal Agent Studio">
+                <div class="brand-copy">
+                    <strong>Minimal Agent Studio</strong>
+                    <span>登录后生成、保存、下载一条龙。</span>
+                </div>
+            </div>
+            <div class="intro-copy">
+                <h2>把主题丢进来，文本就会自己长出来。</h2>
+                <p>支持用户登录、历史记录、磁盘落盘和文件下载。界面会直接显示最终文本和保存路径。</p>
+                <p>你可以先注册一个账号，再回来登录使用这个工作台。</p>
+            </div>
+        </div>
+        <div class="stat-strip">
+            <div class="stat"><strong>1</strong><span>个工作台</span></div>
+            <div class="stat"><strong>2</strong><span>步完成登录</span></div>
+            <div class="stat"><strong>3</strong><span>类输出可看</span></div>
+        </div>
+    </section>
+    <section class="auth-form">
+        <h1 class="form-title">登录</h1>
+        <p class="form-subtitle">输入账号和密码，进入工作台。</p>
+        <form id="authForm" class="form-grid">
+            <div class="field">
+                <label for="username">用户名</label>
+                <input id="username" name="username" autocomplete="username" placeholder="yourname">
+            </div>
+            <div class="field">
+                <label for="password">密码</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="至少 6 位">
+            </div>
+            <div class="actions-row">
+                <button id="authSubmit" class="btn primary" type="submit">登录</button>
+                <a class="btn ghost" href="/register">去注册</a>
+            </div>
+        </form>
+        <p id="authMessage" class="form-note"></p>
+    </section>
+</main>
+</body>
+</html>

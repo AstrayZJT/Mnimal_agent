@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作台 - Minimal Agent Studio</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body class="screen" data-page="app">
+<header class="topbar">
+    <a class="topbar-brand" href="/app">
+        <img src="/brand.svg" alt="Minimal Agent Studio">
+        <div>
+            <strong>Minimal Agent Studio</strong>
+            <span id="userGreeting">工作台</span>
+            <span id="userName" class="subtle"></span>
+            <span id="userMeta" class="subtle"></span>
+        </div>
+    </a>
+    <div class="topbar-actions">
+        <button id="refreshButton" class="btn secondary" type="button">刷新</button>
+        <button id="logoutButton" class="btn ghost" type="button">退出</button>
+    </div>
+</header>
+
+<main class="workspace">
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>生成工作台</h2>
+                <p>输入主题，生成内容会自动落盘并出现在历史里。</p>
+            </div>
+            <div class="subtle" id="statusMessage"></div>
+        </div>
+
+        <form id="generateForm" class="composer-form">
+            <div class="field">
+                <label for="topic">主题</label>
+                <input id="topic" name="topic" placeholder="例如：LangGraph4j 的最小可运行示例">
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="audience">受众</label>
+                    <input id="audience" name="audience" placeholder="例如：Java 初学者">
+                </div>
+                <div class="field">
+                    <label for="tone">语气</label>
+                    <select id="tone" name="tone">
+                        <option value="balanced">平衡</option>
+                        <option value="professional">专业</option>
+                        <option value="friendly">友好</option>
+                        <option value="concise">简洁</option>
+                        <option value="persuasive">说服力</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label for="notes">补充说明</label>
+                <textarea id="notes" name="notes" placeholder="可以补充结构、关键词、字数或风格要求"></textarea>
+            </div>
+            <div class="actions-row">
+                <button id="generateButton" class="btn primary" type="submit">开始生成</button>
+                <span id="submitNote" class="form-note"></span>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>结果</h2>
+                <p>这里展示最终文本、草稿和磁盘路径。</p>
+            </div>
+            <div class="inline-actions">
+                <button id="recordCopy" class="btn secondary" type="button">复制</button>
+                <a id="recordDownload" class="btn ghost download-link" href="#" target="_blank" rel="noreferrer">下载</a>
+            </div>
+        </div>
+
+        <div id="recordEmpty" class="history-empty">先生成一条内容，这里会显示最终文本。</div>
+
+        <div id="recordLinks" class="output-body" hidden>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span>主题</span>
+                    <strong id="recordTopic">-</strong>
+                </div>
+                <div class="summary-item">
+                    <span>语气</span>
+                    <strong id="recordTone">-</strong>
+                </div>
+            </div>
+
+            <div class="record-meta">
+                <div><strong>生成时间：</strong><span id="recordCreatedAt">-</span></div>
+                <div><strong>磁盘路径：</strong><span id="archivePath">-</span></div>
+            </div>
+
+            <pre id="outputBox" class="output-box"></pre>
+
+            <div class="field">
+                <label>草稿</label>
+                <div id="recordDraft" class="output-box" style="min-height: 130px;"></div>
+            </div>
+
+            <div class="field">
+                <label>补充说明</label>
+                <div id="recordNotes" class="output-box" style="min-height: 80px;"></div>
+            </div>
+
+            <div class="field">
+                <label>摘要预览</label>
+                <div id="recordPreview" class="output-box" style="min-height: 120px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>历史记录</h2>
+                <p>最近生成的文本都会在这里。</p>
+            </div>
+            <div class="subtle">
+                <span id="historyCount">0</span> 条
+            </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+    </section>
+</main>
+</body>
+</html>

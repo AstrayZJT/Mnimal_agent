@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Minimal Agent Studio</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body class="screen" data-page="register">
+<main class="auth-shell">
+    <section class="auth-intro">
+        <div>
+            <div class="brand-row">
+                <img src="/brand.svg" alt="Minimal Agent Studio">
+                <div class="brand-copy">
+                    <strong>Minimal Agent Studio</strong>
+                    <span>先创建账号，再开始你的生成流。</span>
+                </div>
+            </div>
+            <div class="intro-copy">
+                <h2>注册后就能直接进工作台。</h2>
+                <p>每个用户都有自己的生成历史，最终文本会写到磁盘里，方便你下载和留档。</p>
+                <p>注册成功后会自动登录，不需要再切一次。</p>
+            </div>
+        </div>
+        <div class="stat-strip">
+            <div class="stat"><strong>OK</strong><span>自动登录</span></div>
+            <div class="stat"><strong>MD</strong><span>磁盘落盘</span></div>
+            <div class="stat"><strong>LOG</strong><span>历史记录</span></div>
+        </div>
+    </section>
+    <section class="auth-form">
+        <h1 class="form-title">注册</h1>
+        <p class="form-subtitle">创建一个新账号，稍后就能登录。</p>
+        <form id="authForm" class="form-grid">
+            <div class="field">
+                <label for="displayName">昵称</label>
+                <input id="displayName" name="displayName" autocomplete="nickname" placeholder="展示名称">
+            </div>
+            <div class="field">
+                <label for="username">用户名</label>
+                <input id="username" name="username" autocomplete="username" placeholder="yourname">
+            </div>
+            <div class="field">
+                <label for="password">密码</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+            </div>
+            <div class="actions-row">
+                <button id="authSubmit" class="btn primary" type="submit">创建账号</button>
+                <a class="btn ghost" href="/login">去登录</a>
+            </div>
+        </form>
+        <p id="authMessage" class="form-note"></p>
+    </section>
+</main>
+</body>
+</html>
